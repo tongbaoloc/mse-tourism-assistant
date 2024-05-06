@@ -1,34 +1,18 @@
-import os
+from st_pages import Page, add_page_title, show_pages
 
-from openai import OpenAI
-import streamlit as st
+show_pages(
+    [
+        Page("pages/0_Chat_Bot.py", "Chat Bot", ":chart_with_upwards_trend:"),
+        Page("pages/1_File_Q&A.py", "Build Knowledge", ":books:"),
+        Page("pages/2_Fine_Tune.py", "Fine Tune", ":books:")
+        # # The pages appear in the order you pass them
+        # Page("example_app/example_four.py", "Example Four", "📖"),
+        # Page("example_app/example_two.py", "Example Two", "✏️"),
+        # # Will use the default icon and name based on the filename if you don't
+        # # pass them
+        # Page("example_app/example_three.py"),
+        # Page("example_app/example_five.py", "Example Five", "🧰"),
+    ]
+)
 
-
-
-# with st.sidebar:
-    # openai_api_key = st.text_input("OpenAI API Key", key="chatbot_api_key", type="password")
-    # "[Get an OpenAI API key](https://platform.openai.com/account/api-keys)"
-    # "[View the source code](https://github.com/streamlit/llm-examples/blob/main/Chatbot.py)"
-    # "[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/streamlit/llm-examples?quickstart=1)"
-
-st.title("💬 Chatbot")
-st.caption("🚀 A streamlit chatbot powered by OpenAI LLM")
-if "messages" not in st.session_state:
-    st.session_state["messages"] = [{"role": "assistant", "content": "How can I help you?"}]
-
-for msg in st.session_state.messages:
-    st.chat_message(msg["role"]).write(msg["content"])
-
-if prompt := st.chat_input():
-    # if not openai_api_key:
-    openai_api_key = st.secrets["OPENAI_API"]
-        # st.info("Please add your OpenAI API key to continue.")
-        # st.stop()
-
-    client = OpenAI(api_key=openai_api_key)
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    st.chat_message("user").write(prompt)
-    response = client.chat.completions.create(model="gpt-3.5-turbo", messages=st.session_state.messages)
-    msg = response.choices[0].message.content
-    st.session_state.messages.append({"role": "assistant", "content": msg})
-    st.chat_message("assistant").write(msg)
+add_page_title()  # Optional method to add title and icon to current page
