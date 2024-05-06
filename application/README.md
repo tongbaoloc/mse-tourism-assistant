@@ -1,6 +1,6 @@
-# 🎈 Streamlit + LLM Examples App
+# Tourism Assistant
 
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/streamlit/llm-examples?quickstart=1)
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://psychic-couscous-vj4v69v7p7h6wqp.github.dev/)
 
 Starter examples for building LLM apps with Streamlit.
 
