@@ -3,7 +3,7 @@ import yaml
 from streamlit_authenticator import Authenticate
 from yaml.loader import SafeLoader
 
-with open('config.yaml') as file:
+with open('application/config.yaml') as file:
     config = yaml.load(file, Loader=SafeLoader)
 
 # passwords_to_hash = ['123123']
