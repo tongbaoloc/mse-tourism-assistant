@@ -5,13 +5,13 @@ st.set_page_config(page_title="Tourists Assistant Chatbot", page_icon=":earth_as
 
 show_pages(
     [
-        Page("pages/0_Chat_Bot.py", "Tourists Assistant Chatbot", ":robot_face:"),
+        Page("pages/0_Chat_Bot.py", "Tourists Assistant Chatbot.", ":robot_face:"),
 
         # Section("Build Knowledge", ":brain:"),
 
-        Page("pages/2_Fine_Tune.py", "Build Knowledge - Fine Tune GPT", ":building_construction:"),
+        Page("pages/2_Fine_Tune.py", "Build Knowledge - Fine Tune GPT.", ":building_construction:"),
 
-        Page("pages/1_File_Q&A.py", "Build Knowledge - Adding Relevant Sources", ":building_construction:")
+        Page("pages/1_File_Q&A.py", "Build Knowledge - Adding Relevant Sources.", ":building_construction:")
         # # The pages appear in the order you pass them
         # Page("example_app/example_four.py", "Example Four", "📖"),
         # Page("example_app/example_two.py", "Example Two", "✏️"),
