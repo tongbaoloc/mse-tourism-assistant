@@ -3,6 +3,10 @@ import yaml
 from streamlit_authenticator import Authenticate
 from yaml.loader import SafeLoader
 
+st.set_page_config(
+    initial_sidebar_state="collapsed"
+)
+
 with open('config.yaml') as file:
     config = yaml.load(file, Loader=SafeLoader)
 
