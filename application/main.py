@@ -2,9 +2,9 @@ from st_pages import Page, add_page_title, show_pages
 
 show_pages(
     [
-        Page("application/pages/0_Chat_Bot.py", "Chat Bot", ":chart_with_upwards_trend:"),
-        Page("application/pages/1_File_Q&A.py", "Build Knowledge", ":books:"),
-        Page("application/pages/2_Fine_Tune.py", "Fine Tune", ":books:")
+        Page("pages/0_Chat_Bot.py", "Chat Bot", ":chart_with_upwards_trend:"),
+        Page("pages/1_File_Q&A.py", "Build Knowledge", ":books:"),
+        Page("pages/2_Fine_Tune.py", "Fine Tune", ":books:")
         # # The pages appear in the order you pass them
         # Page("example_app/example_four.py", "Example Four", "📖"),
         # Page("example_app/example_two.py", "Example Two", "✏️"),
