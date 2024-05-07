@@ -1,7 +1,13 @@
+import os
+from datetime import date
+from io import StringIO
+from pathlib import Path
+
 import streamlit as st
 import yaml
 from streamlit_authenticator import Authenticate
 from yaml.loader import SafeLoader
+import pandas as pd
 
 st.set_page_config(
     initial_sidebar_state="collapsed"
@@ -27,13 +33,28 @@ name, authentication_status, username = authenticator.login()
 
 
 def ui_rendering():
-    st.title("Transferring files related to tourism information in Can Tho City.")
-    uploaded_file = st.file_uploader("Upload an article", type=("txt", "md"))
-    question = st.text_input(
-        "Ask something about the article",
-        placeholder="Can you give me a short summary?",
-        disabled=not uploaded_file,
-    )
+
+    st.markdown("<b>Fine-tuning GPT model</b>", unsafe_allow_html=True)
+
+    st.caption("To update latest tourism information in Can Tho City.")
+
+    training_data = st.file_uploader("*Upload file*", type=("xlsx", "xls"))
+
+    if training_data:
+        df = pd.read_excel(training_data)
+        st.write(df)
+        Path("upload_files/fine_tuning_data/processing").mkdir(exist_ok=True)
+        df.to_excel(f"upload_files/fine_tuning_data/processing/{date.today()}_{training_data.name}", index=False)
+
+
+
+    # question = st.text_input(
+    #     "Ask something about the article",
+    #     placeholder="Can you give me a short summary?",
+    #     disabled=not uploaded_file,
+    # )
+
+    # validation_data = st.file_uploader("*Upload a validation data*", type=("jsonl"))
 
     # if uploaded_file and question and not anthropic_api_key:
     #     st.info("Please add your Anthropic API key to continue.")
@@ -64,7 +85,7 @@ if st.session_state["authentication_status"]:
     # except Exception as e:
     #     st.error(e)
     authenticator.logout()
-    st.write(f'Welcome *{st.session_state["name"]}*')
+    # st.write(f'Welcome *{st.session_state["name"]}*')
     ui_rendering()
 
 

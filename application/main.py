@@ -11,7 +11,7 @@ show_pages(
 
         Page("pages/2_Fine_Tune.py", "Build Knowledge - Fine Tune GPT", ":building_construction:"),
 
-        Page("pages/1_File_Q&A.py", "Build Knowledge - From File Resources", ":building_construction:")
+        Page("pages/1_File_Q&A.py", "Build Knowledge - Adding Relevant Sources", ":building_construction:")
         # # The pages appear in the order you pass them
         # Page("example_app/example_four.py", "Example Four", "📖"),
         # Page("example_app/example_two.py", "Example Two", "✏️"),

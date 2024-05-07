@@ -27,13 +27,19 @@ name, authentication_status, username = authenticator.login()
 
 
 def ui_rendering():
-    st.title("Transferring files related to tourism information in Can Tho City.")
-    uploaded_file = st.file_uploader("Upload an article", type=("txt", "md"))
-    question = st.text_input(
-        "Ask something about the article",
-        placeholder="Can you give me a short summary?",
-        disabled=not uploaded_file,
-    )
+
+    st.markdown("<b>Building Knowledge Sources</b>", unsafe_allow_html=True)
+
+    st.caption("Search relevant information from multiple data sources, such as PDF, PowerPoint, and MD files.")
+
+    training_data = st.file_uploader("*Upload files*", type=("pdf"), accept_multiple_files=True)
+    # question = st.text_input(
+    #     "Ask something about the article",
+    #     placeholder="Can you give me a short summary?",
+    #     disabled=not uploaded_file,
+    # )
+
+    # validation_data = st.file_uploader("*Upload a validation data*", type=("jsonl"))
 
     # if uploaded_file and question and not anthropic_api_key:
     #     st.info("Please add your Anthropic API key to continue.")
@@ -64,7 +70,7 @@ if st.session_state["authentication_status"]:
     # except Exception as e:
     #     st.error(e)
     authenticator.logout()
-    st.write(f'Welcome *{st.session_state["name"]}*')
+    # st.write(f'Welcome *{st.session_state["name"]}*')
     ui_rendering()
 
 
