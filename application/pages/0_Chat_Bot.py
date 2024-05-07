@@ -44,7 +44,8 @@ if prompt := st.chat_input():
 
     # check only on development environment
 
-    st.chat_message("send2gpt").write(st.session_state.messages)
+    # st.chat_message("send2gpt").write(st.session_state.messages)
+    print(st.session_state.messages)
 
     response = client.chat.completions.create(model="ft:gpt-3.5-turbo-0125:personal:cantho-tourist:9LrBsXPX",
                                               messages=st.session_state.messages)
