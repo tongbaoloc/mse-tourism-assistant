@@ -1,8 +1,14 @@
 from openai import OpenAI
 import streamlit as st
+from dotenv import load_dotenv
+import os
 
-openai_api_key = st.secrets["OPENAI_API_KEY"]
-openai_model = st.secrets["OPENAI_API_MODEL"]
+load_dotenv()
+
+# openai_api_key = st.secrets["OPENAI_API_KEY"]
+# openai_model = st.secrets["OPENAI_API_MODEL"]
+openai_api_key = os.getenv("OPENAI_API_KEY")
+openai_model = os.getenv("OPENAI_API_MODEL")
 
 st.title("Tourists Assistant Chatbot")
 # st.caption("")
