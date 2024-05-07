@@ -52,6 +52,14 @@ def write_jsonl(data_list: list, filename: str) -> None:
             out.write(jout)
 
 
+def move_files_to_completed_folder():
+    # move all files from upload_files/fine_tuning_data/in_progress/ to upload_files/fine_tuning_data/completed/
+    file_tuning_list = glob.glob('upload_files/fine_tuning_data/in_progress/*')
+    for file_tuning in file_tuning_list:
+        Path("upload_files/fine_tuning_data/completed").mkdir(exist_ok=True)
+        os.rename(file_tuning, f"upload_files/fine_tuning_data/completed/{os.path.split(file_tuning)[1]}")
+
+
 def do_fine_tuning():
     file_tuning_list = glob.glob('upload_files/fine_tuning_data/in_progress/*.xlsx')
     for file_tuning in file_tuning_list:
@@ -86,6 +94,8 @@ def do_fine_tuning():
             #     "num_epochs": 3
             # }
         )
+
+        move_files_to_completed_folder()
 
         print("Job ID:", response.id)
         print("Status:", response.status)
@@ -184,7 +194,9 @@ def ui_rendering():
         if training_data:
             df = pd.read_excel(training_data)
             Path("upload_files/fine_tuning_data/in_progress").mkdir(exist_ok=True)
-            df.to_excel(f"upload_files/fine_tuning_data/in_progress/{datetime.now().strftime('%Y-%m-%d-%H-%M-%S')}_{training_data.name}", index=False)
+            df.to_excel(
+                f"upload_files/fine_tuning_data/in_progress/{datetime.now().strftime('%Y-%m-%d-%H-%M-%S')}_{training_data.name}",
+                index=False)
             st.write("Training data uploaded successfully.")
 
     if st.button("Start fine-tuning"):
