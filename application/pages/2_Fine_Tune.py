@@ -1,7 +1,7 @@
 import glob
 import json
 import math
-from datetime import date, datetime
+from datetime import datetime
 import openai
 from pathlib import Path
 
@@ -55,12 +55,15 @@ def write_jsonl(data_list: list, filename: str) -> None:
 def move_files_to_completed_folder():
     # move all files from upload_files/fine_tuning_data/in_progress/ to upload_files/fine_tuning_data/completed/
     file_tuning_list = glob.glob('upload_files/fine_tuning_data/in_progress/*')
+
     for file_tuning in file_tuning_list:
         Path("upload_files/fine_tuning_data/completed").mkdir(exist_ok=True)
         os.rename(file_tuning, f"upload_files/fine_tuning_data/completed/{os.path.split(file_tuning)[1]}")
 
+    print("All files are moved to completed folder.")
 
-def do_fine_tuning():
+
+def do_fine_tuning(epochs_value=None, learning_rate_value=None, batch_size_value=None):
     file_tuning_list = glob.glob('upload_files/fine_tuning_data/in_progress/*.xlsx')
     for file_tuning in file_tuning_list:
 
@@ -83,17 +86,32 @@ def do_fine_tuning():
         print("Training file ID:", training_file_id)
         print("Validation file ID:", validation_file_id)
 
-        response = client.fine_tuning.jobs.create(
-            training_file=training_file_id,
-            validation_file=validation_file_id,
-            model="gpt-3.5-turbo",
-            suffix=f"cttourism{datetime.now().strftime('%Y-%m-%d')}",
-            # hyperparameters={
-            #     "learning_rate": 1e-4,
-            #     "batch_size": 4,
-            #     "num_epochs": 3
-            # }
-        )
+        if epochs_value is not None and learning_rate_value is not None and batch_size_value is not None:
+            response = client.fine_tuning.jobs.create(
+                training_file=training_file_id,
+                validation_file=validation_file_id,
+                model="gpt-3.5-turbo-0125",
+                suffix=f"tourism{datetime.now().strftime('%Y-%m-%d')}",
+                hyperparameters={
+                    "learning_rate": learning_rate_value,
+                    "batch_size": batch_size_value,
+                    "num_epochs": epochs_value
+                }
+            )
+        else:
+            response = client.fine_tuning.jobs.create(
+                training_file=training_file_id,
+                validation_file=validation_file_id,
+                model="gpt-3.5-turbo-0125",
+                suffix=f"tourism{datetime.now().strftime('%Y-%m-%d')}",
+                integrations=[{
+                    "type": "wandb",
+                    "wandb": {
+                        "project": "tourism-assistant",
+                        "tags": ["tourism", "fine-tuning"]
+                    }
+                }]
+            )
 
         move_files_to_completed_folder()
 
@@ -118,7 +136,6 @@ def do_fine_tuning():
 def convert_fine_tuning_csv_to_jsonl():
     file_tuning_csv_list = glob.glob('upload_files/fine_tuning_data/in_progress/*.csv')
     for file_csv_tuning in file_tuning_csv_list:
-        csv = os.path.split(file_csv_tuning)[1]
         tourism_df = pd.read_csv(file_csv_tuning)
 
         number_of_training_row = math.floor(len(tourism_df.index) * 0.8)
@@ -161,6 +178,11 @@ def prepare_example_conversation(row):
 
 def convert_fine_tuning_data_to_csv():
     file_tuning_list = glob.glob('upload_files/fine_tuning_data/in_progress/*.xlsx')
+
+    if not file_tuning_list:
+        st.write("No file to fine-tune.")
+        return
+
     for file_tuning in file_tuning_list:
         filename = os.path.split(file_tuning, )[1]
 
@@ -169,7 +191,7 @@ def convert_fine_tuning_data_to_csv():
         pd.read_excel(file_tuning).to_csv(file_tuning.replace('xlsx', 'csv'), index=False)
 
 
-def ui_rendering():
+def ui_rendering(special_internal_function=None):
     st.markdown("<b>Fine-tuning GPT model</b>", unsafe_allow_html=True)
 
     st.caption("To update latest tourism information in Can Tho City.")
@@ -177,13 +199,19 @@ def ui_rendering():
     with open("upload_files/fine_tuning_data/fine_tuning_data_template.xlsx", "rb") as template_file:
         template_byte = template_file.read()
 
+    st.write("*Download the fine-tuning data template*")
+
     st.download_button(
-        label="Download fine-tuning data template",
+        label="Download",
         data=template_byte,
         file_name="fine_tuning_data_template.xlsx"
     )
 
-    training_data = st.file_uploader("*Upload file*", type=("xlsx", "xls"))
+    st.divider()
+
+    st.write("*Upload the fine-tuning data*")
+
+    training_data = st.file_uploader("Upload file", type=("xlsx", "xls"))
 
     if training_data:
         df = pd.read_excel(training_data)
@@ -199,14 +227,43 @@ def ui_rendering():
                 index=False)
             st.write("Training data uploaded successfully.")
 
+    st.divider()
+
+    st.write("*Create a fine-tuned model*")
+
+    is_hyper_params = st.checkbox(" Do you want to adjust hyperparameters?")
+
+    epochs_value = st.select_slider("Select the number of epochs", options=[1, 2, 3, 4, 5], value=2)
+
+    st.write(f"Number of epochs: {epochs_value}")
+
+    learning_rate_value = st.select_slider("Select the learning rate", options=[0.1, 0.2, 0.3, 0.4, 0.5], value=0.2)
+
+    st.write(f"Learning rate: {learning_rate_value}")
+
+    batch_size_value = st.select_slider("Select the batch size", options=[1, 2, 3, 4, 5], value=2)
+
+    st.write(f"Batch size: {batch_size_value}")
+
     if st.button("Start fine-tuning"):
+
+        file_tuning_list = glob.glob('upload_files/fine_tuning_data/in_progress/*.xlsx')
+
+        if not file_tuning_list:
+            st.write("No file to fine-tune.")
+            return
+
         st.write("Fine-tuning is in progress...")
 
         convert_fine_tuning_data_to_csv()
 
         convert_fine_tuning_csv_to_jsonl()
 
-        do_fine_tuning()
+        if is_hyper_params is True:
+            print(epochs_value, learning_rate_value, batch_size_value)
+            do_fine_tuning(epochs_value, learning_rate_value, batch_size_value)
+        else:
+            do_fine_tuning()
 
         st.write("Fine-tuning is submitted successfully. Please check the status in your OpenAI account.")
 
