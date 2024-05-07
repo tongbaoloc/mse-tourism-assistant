@@ -1,6 +1,4 @@
-import os
 from datetime import date
-from io import StringIO
 from pathlib import Path
 
 import streamlit as st
@@ -42,8 +40,13 @@ def ui_rendering():
     if training_data:
         df = pd.read_excel(training_data)
         st.write(df)
-        Path("upload_files/fine_tuning_data/processing").mkdir(exist_ok=True)
-        df.to_excel(f"upload_files/fine_tuning_data/processing/{date.today()}_{training_data.name}", index=False)
+        Path("upload_files/fine_tuning_data/in_progress").mkdir(exist_ok=True)
+        df.to_excel(f"upload_files/fine_tuning_data/in_progress/{date.today()}_{training_data.name}", index=False)
+
+    if st.button("Start fine-tuning"):
+        st.write("Fine-tuning is in progress...")
+
+        st.write("Fine-tuning is completed.")
 
     # question = st.text_input(
     #     "Ask something about the article",
