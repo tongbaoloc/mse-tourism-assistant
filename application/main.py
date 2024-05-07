@@ -1,10 +1,14 @@
-from st_pages import Page, add_page_title, show_pages
+from st_pages import Page, Section, add_page_title, show_pages
 
 show_pages(
     [
-        Page("pages/0_Chat_Bot.py", "Chat Bot", ":chart_with_upwards_trend:"),
-        Page("pages/1_File_Q&A.py", "Build Knowledge", ":books:"),
-        Page("pages/2_Fine_Tune.py", "Fine Tune", ":books:")
+        Page("pages/0_Chat_Bot.py", "Tourists Assistant Chatbot", ":robot_face:"),
+
+        Section(name="Build Knowledge", icon=":brain:"),
+
+        Page("pages/2_Fine_Tune.py", "Fine Tune GPT", ":building_construction:"),
+
+        Page("pages/1_File_Q&A.py", "File resources", ":page_facing_up:")
         # # The pages appear in the order you pass them
         # Page("example_app/example_four.py", "Example Four", "📖"),
         # Page("example_app/example_two.py", "Example Two", "✏️"),

@@ -10,6 +10,8 @@ load_dotenv()
 openai_api_key = os.getenv("OPENAI_API_KEY")
 openai_model = os.getenv("OPENAI_API_MODEL")
 
+# st.sidebar.caption("This is a chatbot that can help you with your tourism queries. Ask me anything about Can Tho City!")
+st.set_page_config(page_title="Tourists Assistant Chatbot", page_icon=":earth_asia:")
 st.title("Tourists Assistant Chatbot")
 # st.caption("")
 st.write("This is a chatbot that can help you with your tourism queries. Ask me anything about Can Tho City!")
