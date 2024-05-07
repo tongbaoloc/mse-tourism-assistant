@@ -33,7 +33,6 @@ name, authentication_status, username = authenticator.login()
 
 
 def ui_rendering():
-
     st.markdown("<b>Fine-tuning GPT model</b>", unsafe_allow_html=True)
 
     st.caption("To update latest tourism information in Can Tho City.")
@@ -45,8 +44,6 @@ def ui_rendering():
         st.write(df)
         Path("upload_files/fine_tuning_data/processing").mkdir(exist_ok=True)
         df.to_excel(f"upload_files/fine_tuning_data/processing/{date.today()}_{training_data.name}", index=False)
-
-
 
     # question = st.text_input(
     #     "Ask something about the article",
