@@ -2,7 +2,7 @@ from st_pages import Page, Section, show_pages
 import streamlit as st
 
 st.set_page_config(page_title="Tourists Assistant Chatbot", page_icon=":earth_asia:")
-
+ # ⭐️ 🚀
 show_pages(
     [
         Page("pages/0_Chat_Bot.py", "Tourists Assistant Chatbot.", ":robot_face:"),

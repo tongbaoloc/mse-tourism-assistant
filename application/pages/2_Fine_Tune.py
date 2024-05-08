@@ -12,6 +12,7 @@ from yaml.loader import SafeLoader
 import pandas as pd
 from dotenv import load_dotenv
 import os
+from wandb.integration.openai.fine_tuning import WandbLogger
 
 load_dotenv()
 
@@ -95,10 +96,11 @@ def do_fine_tuning(epochs_value=None, learning_rate_value=None, batch_size_value
             validation_response = client.files.create(
                 file=validation_fd, purpose="fine-tune"
             )
+
         validation_file_id = validation_response.id
 
-        print("Training file ID:", training_file_id)
-        print("Validation file ID:", validation_file_id)
+        # print("Training file ID:", training_file_id)
+        # print("Validation file ID:", validation_file_id)
 
         if epochs_value is not None and learning_rate_value is not None and batch_size_value is not None:
             response = client.fine_tuning.jobs.create(
@@ -117,20 +119,18 @@ def do_fine_tuning(epochs_value=None, learning_rate_value=None, batch_size_value
                 training_file=training_file_id,
                 validation_file=validation_file_id,
                 model="gpt-3.5-turbo-0125",
-                suffix=f"tourism{datetime.now().strftime('%Y-%m-%d')}",
-                integrations=[{
-                    "type": "wandb",
-                    "wandb": {
-                        "project": "tourism-assistant",
-                        "tags": ["tourism", "fine-tuning"]
-                    }
-                }]
+                suffix=f"tourism{datetime.now().strftime('%Y-%m-%d')}"
+                # ,
+                # integrations=[{
+                #     "type": "wandb",
+                #     "wandb": {
+                #         "project": "tourism-assistant",
+                #         "tags": ["tourism", "fine-tuning"]
+                #     }
+                # }]
             )
 
         move_files_to_completed_folder()
-
-        print("Job ID:", response.id)
-        print("Status:", response.status)
 
         response = client.fine_tuning.jobs.retrieve(response.id)
 
@@ -138,13 +138,17 @@ def do_fine_tuning(epochs_value=None, learning_rate_value=None, batch_size_value
         print("Status:", response.status)
         print("Trained Tokens:", response.trained_tokens)
 
-        response = client.fine_tuning.jobs.list_events(response.id)
+        if development == "True":
+            st.write("Weight and Biases logging is in progress...")
+            WandbLogger.sync(fine_tune_job_id=response.id, project="tourism-assistant", openai_client=client, tags=["tourism", "fine-tuning"])
 
-        events = response.data
-        events.reverse()
+        # response = client.fine_tuning.jobs.list_events(response.id)
 
-        for event in events:
-            print(event.message)
+        # events = response.data
+        # events.reverse()
+        #
+        # for event in events:
+        #     print(event.message)
 
 
 def convert_fine_tuning_csv_to_jsonl():

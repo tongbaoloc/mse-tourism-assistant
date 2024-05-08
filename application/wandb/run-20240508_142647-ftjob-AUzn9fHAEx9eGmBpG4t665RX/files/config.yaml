@@ -1,0 +1,102 @@
+wandb_version: 1
+
+_wandb:
+  desc: null
+  value:
+    python_version: 3.11.5
+    cli_version: 0.17.0
+    is_jupyter_run: false
+    is_kaggle_kernel: false
+    start_time: 1715153207
+    t:
+      1:
+      - 55
+      - 86
+      - 95
+      - 105
+      2:
+      - 55
+      - 86
+      - 95
+      - 105
+      3:
+      - 2
+      - 13
+      - 14
+      - 15
+      - 23
+      - 58
+      - 61
+      - 62
+      4: 3.11.5
+      5: 0.17.0
+      8:
+      - 4
+      - 5
+      13: darwin-arm64
+id:
+  desc: null
+  value: ftjob-AUzn9fHAEx9eGmBpG4t665RX
+created_at:
+  desc: null
+  value: '2024-05-08 14:14:05'
+error:
+  desc: null
+  value:
+    code: null
+    message: null
+    param: null
+fine_tuned_model:
+  desc: null
+  value: ft:gpt-3.5-turbo-0125:ltong:tourism2024-05-08:9MVubw5T
+finished_at:
+  desc: null
+  value: '2024-05-08 14:21:41'
+hyperparameters:
+  desc: null
+  value:
+    n_epochs: 9
+    batch_size: 1
+    learning_rate_multiplier: 2
+model:
+  desc: null
+  value: gpt-3.5-turbo-0125
+object:
+  desc: null
+  value: fine_tuning.job
+organization_id:
+  desc: null
+  value: org-UD4HHAyNZC3xlIND6GbJN29t
+result_files:
+  desc: null
+  value: file-Wj8EIn7li8DGypDcEAAK4zUU
+status:
+  desc: null
+  value: succeeded
+trained_tokens:
+  desc: null
+  value: 59229
+training_file:
+  desc: null
+  value: file-8kWscQNvu1vnLbmqTkcht8GI
+validation_file:
+  desc: null
+  value: file-o5B1nHtqTr02b7vdbGcfwwyP
+user_provided_suffix:
+  desc: null
+  value: tourism2024-05-08
+seed:
+  desc: null
+  value: 1201729484
+estimated_finish:
+  desc: null
+  value: null
+integrations:
+  desc: null
+  value: []
+n_train:
+  desc: null
+  value: 11
+n_valid:
+  desc: null
+  value: 10
