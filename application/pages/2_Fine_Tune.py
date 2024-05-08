@@ -23,6 +23,13 @@ openai_tokens = os.getenv("OPENAI_TOKENS")
 openai_system_prompt = os.getenv("OPENAI_SYSTEM_PROMPT")
 openai_welcome_prompt = os.getenv("OPENAI_WELCOME_PROMPT")
 
+st.set_page_config(
+    initial_sidebar_state="collapsed",
+    page_title="Tourists Assistant Chatbot - Fine Tune GPT",
+    page_icon=":earth_asia:",
+    # layout="wide"
+)
+
 if development != "True":
     hide_menu_style = """
             <style>
@@ -32,13 +39,6 @@ if development != "True":
     st.markdown(hide_menu_style, unsafe_allow_html=True)
 
 client = openai.OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
-
-st.set_page_config(
-    initial_sidebar_state="collapsed",
-    page_title="Tourists Assistant Chatbot - Fine Tune GPT",
-    page_icon=":earth_asia:",
-    # layout="wide"
-)
 
 with open('config.yaml') as file:
     config = yaml.load(file, Loader=SafeLoader)
