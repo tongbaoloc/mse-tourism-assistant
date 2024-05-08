@@ -6,49 +6,76 @@ import os
 st.set_page_config(
     initial_sidebar_state="collapsed",
     page_title="Tourists Assistant Chatbot",
-    page_icon=":earth_asia:"
+    page_icon=":earth_asia:",
 )
+
 
 load_dotenv()
 
 # openai_api_key = st.secrets["OPENAI_API_KEY"]
 # openai_model = st.secrets["OPENAI_API_MODEL"]
+development = os.getenv("DEVELOPMENT")
 openai_api_key = os.getenv("OPENAI_API_KEY")
 openai_model = os.getenv("OPENAI_API_MODEL")
+openai_temperature = os.getenv("OPENAI_TEMPERATURE")
+openai_tokens = os.getenv("OPENAI_TOKENS")
+openai_system_prompt = os.getenv("OPENAI_SYSTEM_PROMPT")
+openai_welcome_prompt = os.getenv("OPENAI_WELCOME_PROMPT")
 
-st.title("Tourists Assistant Chatbot")
-# st.caption("")
-st.write("This is a chatbot that can help you with your tourism queries. Ask me anything about Can Tho City!")
+if development != "True":
+    hide_menu_style = """
+            <style>
+            #MainMenu {visibility: hidden;}
+            </style>
+            """
+    st.markdown(hide_menu_style, unsafe_allow_html=True)
+
+st.markdown('<h3>Tourists Assistant Chatbot</h3>', unsafe_allow_html=True)
+st.caption("This is a chatbot that can help you with your tourism queries. Ask me anything about Can Tho City!")
+
+print("🔥Environment Variables 🔥")
+print("Development:", development)
+print("OpenAI API Key:", openai_api_key)
+print("OpenAI Model:", openai_model)
+print("OpenAI Temperature:", openai_temperature)
+print("OpenAI Tokens:", openai_tokens)
+print("OpenAI System Prompt:", openai_system_prompt)
+print("OpenAI Welcome Prompt:", openai_welcome_prompt)
+
 if "messages" not in st.session_state:
-    st.session_state["messages"] = [{"role": "system", "content": "You are an expert in providing travel assistance "
-                                                                  "for Can Tho. Your role is to offer detailed "
-                                                                  "information, tips, and guidance to travelers "
-                                                                  "interested in exploring Can Tho, Vietnam. You "
-                                                                  "provide insights into the best places to visit, "
-                                                                  "local cuisine, cultural highlights, and practical "
-                                                                  "travel advice to ensure visitors have a memorable "
-                                                                  "and smooth experience in Can Tho."},
-                                    {"role": "assistant", "content": "A warm and vibrant welcome awaits you in Can "
-                                                                     "Tho City. How can I assist you with your "
-                                                                     "exploration?"}]
+
+    st.session_state["messages"] = [{"role": "system", "content": openai_system_prompt},
+                                    {"role": "assistant", "content": openai_welcome_prompt}]
+
+    print("🔥Initial Session State 🔥")
+
+    print(st.session_state.messages)
+
 for msg in st.session_state.messages:
-    # and "role" in st.session_state.messages[-1] and st.session_state.messages[-1]["role"] == "assistant"
+
     if msg["role"] != "system":
+
         st.chat_message(msg["role"]).write(msg["content"])
 
 if prompt := st.chat_input():
+
     client = OpenAI(api_key=openai_api_key)
+
     st.session_state.messages.append({"role": "user", "content": prompt})
 
     st.chat_message("user").write(prompt)
 
-    # check only on development environment
+    if development == "True":
+        st.write("🔥Development Environment 🔥")
+        st.chat_message("system").write(st.session_state.messages)
 
-    # st.chat_message("send2gpt").write(st.session_state.messages)
-    print(st.session_state.messages)
-
-    response = client.chat.completions.create(model="ft:gpt-3.5-turbo-0125:personal:cantho-tourist:9LrBsXPX",
+    response = client.chat.completions.create(model=openai_model,
+                                              temperature=float(openai_temperature),
+                                              max_tokens=int(openai_tokens),
                                               messages=st.session_state.messages)
+
     msg = response.choices[0].message.content
+
     st.session_state.messages.append({"role": "assistant", "content": msg})
+
     st.chat_message("assistant").write(msg)

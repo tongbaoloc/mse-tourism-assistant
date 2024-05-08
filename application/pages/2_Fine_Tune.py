@@ -15,15 +15,29 @@ import os
 
 load_dotenv()
 
+development = os.getenv("DEVELOPMENT")
 openai_api_key = os.getenv("OPENAI_API_KEY")
 openai_model = os.getenv("OPENAI_API_MODEL")
+openai_temperature = os.getenv("OPENAI_TEMPERATURE")
+openai_tokens = os.getenv("OPENAI_TOKENS")
+openai_system_prompt = os.getenv("OPENAI_SYSTEM_PROMPT")
+openai_welcome_prompt = os.getenv("OPENAI_WELCOME_PROMPT")
 
-client = openai.OpenAI(api_key=os.environ.get("OPENAI_API_KEY", "<your OpenAI API key if not set as env var>"))
+if development != "True":
+    hide_menu_style = """
+            <style>
+            #MainMenu {visibility: hidden;}
+            </style>
+            """
+    st.markdown(hide_menu_style, unsafe_allow_html=True)
+
+client = openai.OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
 st.set_page_config(
     initial_sidebar_state="collapsed",
-    page_title="Tourists Assistant Chatbot - Build Knowledge",
-    page_icon=":earth_asia:"
+    page_title="Tourists Assistant Chatbot - Fine Tune GPT",
+    page_icon=":earth_asia:",
+    # layout="wide"
 )
 
 with open('config.yaml') as file:
@@ -192,7 +206,7 @@ def convert_fine_tuning_data_to_csv():
 
 
 def ui_rendering(special_internal_function=None):
-    st.markdown("<b>Fine-tuning GPT model</b>", unsafe_allow_html=True)
+    st.markdown("<h3>Fine-tuning GPT model</h3>", unsafe_allow_html=True)
 
     st.caption("To update latest tourism information in Can Tho City.")
 

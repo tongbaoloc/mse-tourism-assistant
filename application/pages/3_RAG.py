@@ -2,10 +2,30 @@ import streamlit as st
 import yaml
 from streamlit_authenticator import Authenticate
 from yaml.loader import SafeLoader
+import os
 
 st.set_page_config(
-    initial_sidebar_state="collapsed"
+    initial_sidebar_state="collapsed",
+    page_title="Tourists Assistant Chatbot - Build Knowledge",
+    page_icon=":earth_asia:",
+    # layout="wide"
 )
+
+development = os.getenv("DEVELOPMENT")
+openai_api_key = os.getenv("OPENAI_API_KEY")
+openai_model = os.getenv("OPENAI_API_MODEL")
+openai_temperature = os.getenv("OPENAI_TEMPERATURE")
+openai_tokens = os.getenv("OPENAI_TOKENS")
+openai_system_prompt = os.getenv("OPENAI_SYSTEM_PROMPT")
+openai_welcome_prompt = os.getenv("OPENAI_WELCOME_PROMPT")
+
+if development != "True":
+    hide_menu_style = """
+            <style>
+            #MainMenu {visibility: hidden;}
+            </style>
+            """
+    st.markdown(hide_menu_style, unsafe_allow_html=True)
 
 with open('config.yaml') as file:
     config = yaml.load(file, Loader=SafeLoader)
@@ -28,11 +48,11 @@ name, authentication_status, username = authenticator.login()
 
 def ui_rendering():
 
-    st.markdown("<b>Building Knowledge Sources</b>", unsafe_allow_html=True)
+    st.markdown("<h3>Building Knowledge Sources</h3>", unsafe_allow_html=True)
 
     st.caption("Search relevant information from multiple data sources, such as PDF, PowerPoint, and MD files.")
 
-    training_data = st.file_uploader("*Upload files*", type=("pdf"), accept_multiple_files=True)
+    training_data = st.file_uploader("Upload files", type=("pdf"), accept_multiple_files=True)
     # question = st.text_input(
     #     "Ask something about the article",
     #     placeholder="Can you give me a short summary?",
