@@ -1,8 +1,13 @@
+from datetime import datetime
+from pathlib import Path
+
 import streamlit as st
 import yaml
 from streamlit_authenticator import Authenticate
 from yaml.loader import SafeLoader
 import os
+import pandas as pd
+import PyPDF2
 
 st.set_page_config(
     initial_sidebar_state="collapsed",
@@ -10,6 +15,9 @@ st.set_page_config(
     page_icon=":earth_asia:",
     # layout="wide"
 )
+
+with open('config.yaml') as file:
+    config = yaml.load(file, Loader=SafeLoader)
 
 development = os.getenv("DEVELOPMENT")
 openai_api_key = os.getenv("OPENAI_API_KEY")
@@ -47,37 +55,61 @@ name, authentication_status, username = authenticator.login()
 
 
 def ui_rendering():
-
     st.markdown("<h3>Building Knowledge Sources</h3>", unsafe_allow_html=True)
 
     st.caption("Search relevant information from multiple data sources, such as PDF, PowerPoint, and MD files.")
 
-    training_data = st.file_uploader("Upload files", type=("pdf"), accept_multiple_files=True)
-    # question = st.text_input(
-    #     "Ask something about the article",
-    #     placeholder="Can you give me a short summary?",
-    #     disabled=not uploaded_file,
-    # )
+    rag_files = st.file_uploader("Choose files", type=("pdf", "md", "xlsx"), accept_multiple_files=True)
 
-    # validation_data = st.file_uploader("*Upload a validation data*", type=("jsonl"))
+    if st.button("Upload files"):
+        st.write("Uploading RAG files...")
 
-    # if uploaded_file and question and not anthropic_api_key:
-    #     st.info("Please add your Anthropic API key to continue.")
-    #
-    # if uploaded_file and question and anthropic_api_key:
-    #     article = uploaded_file.read().decode()
-    #     prompt = f"""{anthropic.HUMAN_PROMPT} Here's an article:\n\n<article>
-    #     {article}\n\n</article>\n\n{question}{anthropic.AI_PROMPT}"""
-    #
-    #     client = anthropic.Client(api_key=anthropic_api_key)
-    #     response = client.completions.create(
-    #         prompt=prompt,
-    #         stop_sequences=[anthropic.HUMAN_PROMPT],
-    #         model="claude-v1",  # "claude-2" for Claude 2 model
-    #         max_tokens_to_sample=100,
-    #     )
-    #     st.write("### Answer")
-    #     st.write(response.completion)
+        rag_repository_path = "upload_files/rag_files"
+        rag_sheet_path = f"{rag_repository_path}/sheet"
+        rag_pdf_path = f"{rag_repository_path}/pdf"
+        rag_md_path = f"{rag_repository_path}/md"
+
+        Path(rag_sheet_path).mkdir(exist_ok=True)
+        Path(rag_pdf_path).mkdir(exist_ok=True)
+        Path(rag_md_path).mkdir(exist_ok=True)
+
+        for rag_file in rag_files:
+            if rag_file.type == 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':
+                df = pd.read_excel(rag_file)
+                df.to_excel(
+                    f"{rag_sheet_path}/{rag_file.name}",
+                    index=False)
+            elif rag_file.type == 'application/pdf':
+                with open(os.path.join(rag_pdf_path, rag_file.name), "wb") as f:
+                    f.write(rag_file.getbuffer())
+            elif rag_file.name.endswith('.md'):
+                with open(os.path.join(rag_md_path, rag_file.name), "wb") as f:
+                    f.write(rag_file.getbuffer())
+
+        st.write("RAG files uploaded successfully")
+
+    st.divider()
+    st.markdown("<h4>Uploaded files previewing</h4>", unsafe_allow_html=True)
+
+    for rag_file in rag_files:
+        st.divider()
+        st.write(f"File name: {rag_file.name}")
+
+        if rag_file.type == 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':
+            df = pd.read_excel(rag_file)
+            st.write(df)
+        elif rag_file.type == 'application/pdf':
+            # Read the PDF file 1
+            pdf_reader = PyPDF2.PdfReader(rag_file)
+            # Extract the content
+            content = ""
+            for page in range(len(pdf_reader.pages)):
+                content += pdf_reader.pages[page].extract_text()
+            # Display the content
+            st.markdown(content)
+        elif rag_file.name.endswith('.md'):
+            df = pd.read_csv(rag_file)
+            st.markdown(df, unsafe_allow_html=True)
 
 
 if st.session_state["authentication_status"]:

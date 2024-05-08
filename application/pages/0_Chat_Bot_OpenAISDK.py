@@ -1,9 +1,7 @@
+from openai import OpenAI
 import streamlit as st
 from dotenv import load_dotenv
 import os
-
-from langchain.chains.conversation.base import ConversationChain
-from langchain_community.chat_models import ChatOpenAI
 
 st.set_page_config(
     initial_sidebar_state="collapsed",
@@ -61,14 +59,7 @@ for msg in st.session_state.messages:
 
 if prompt := st.chat_input():
 
-    llm = ChatOpenAI(
-        api_key=openai_api_key,
-        model=openai_model,
-        temperature=float(openai_temperature),
-        max_tokens=int(openai_tokens),
-    )
-
-    # ConversationChain()
+    client = OpenAI(api_key=openai_api_key)
 
     st.session_state.messages.append({"role": "user", "content": prompt})
 
@@ -78,16 +69,12 @@ if prompt := st.chat_input():
         st.write("🔥Development Environment 🔥")
         st.chat_message("system").write(st.session_state.messages)
 
-    # response = client.chat.completions.create(model=openai_model,
-    #                                           temperature=float(openai_temperature),
-    #                                           max_tokens=int(openai_tokens),
-    #                                           messages=st.session_state.messages)
+    response = client.chat.completions.create(model=openai_model,
+                                              temperature=float(openai_temperature),
+                                              max_tokens=int(openai_tokens),
+                                              messages=st.session_state.messages)
 
-    response = llm.invoke(st.session_state.messages)
-
-    msg = response.content
-
-    print(f"🔥Response {response} 🔥")
+    msg = response.choices[0].message.content
 
     st.session_state.messages.append({"role": "assistant", "content": msg})
 

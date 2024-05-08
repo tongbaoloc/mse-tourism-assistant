@@ -225,13 +225,13 @@ def ui_rendering(special_internal_function=None):
 
     st.write("*Upload the fine-tuning data*")
 
-    training_data = st.file_uploader("Upload file", type=("xlsx", "xls"))
+    training_data = st.file_uploader("Choose file", type=("xlsx", "xls"))
 
     if training_data:
         df = pd.read_excel(training_data)
         st.write(df)
 
-    if st.button("Upload data"):
+    if st.button("Upload file"):
         st.write("Uploading training data...")
         if training_data:
             df = pd.read_excel(training_data)
