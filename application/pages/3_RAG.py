@@ -109,7 +109,7 @@ def ui_rendering():
             st.markdown(content)
         elif rag_file.name.endswith('.md'):
             df = pd.read_csv(rag_file)
-            st.markdown(df, unsafe_allow_html=True)
+            st.write(df, unsafe_allow_html=True)
 
 
 if st.session_state["authentication_status"]:
