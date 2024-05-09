@@ -23,6 +23,7 @@ openai_temperature = os.getenv("OPENAI_TEMPERATURE")
 openai_tokens = os.getenv("OPENAI_TOKENS")
 openai_system_prompt = os.getenv("OPENAI_SYSTEM_PROMPT")
 openai_welcome_prompt = os.getenv("OPENAI_WELCOME_PROMPT")
+fine_tune_secret = os.getenv("FINE_TUNE_SECRET")
 
 st.set_page_config(
     initial_sidebar_state="collapsed",
@@ -78,7 +79,7 @@ def move_files_to_completed_folder():
     print("All files are moved to completed folder.")
 
 
-def do_fine_tuning(epochs_value=None, learning_rate_value=None, batch_size_value=None):
+def do_fine_tuning(epochs_value=None, learning_rate_value=None, batch_size_value=None, fine_tuned_suffix=None):
     file_tuning_list = glob.glob('upload_files/fine_tuning_data/in_progress/*.xlsx')
     for file_tuning in file_tuning_list:
 
@@ -107,7 +108,7 @@ def do_fine_tuning(epochs_value=None, learning_rate_value=None, batch_size_value
                 training_file=training_file_id,
                 validation_file=validation_file_id,
                 model="gpt-3.5-turbo-0125",
-                suffix=f"tourism{datetime.now().strftime('%Y-%m-%d')}",
+                suffix=f"{fine_tuned_suffix}",
                 hyperparameters={
                     "learning_rate": learning_rate_value,
                     "batch_size": batch_size_value,
@@ -263,7 +264,18 @@ def ui_rendering(special_internal_function=None):
 
     st.write(f"Batch size: {batch_size_value}")
 
-    if st.button("Start fine-tuning"):
+    st.warning("Please make sure to adjust the hyperparameters properly to avoid overwriting or underwriting the model.")
+
+    fine_tuned_suffix = st.text_input("Enter the suffix for the fine-tuned model",
+                                      value=f"tourism{datetime.now().strftime('%Y-%m-%d')}")
+
+    fine_tuned_secret = st.text_input("Enter the secret to fine-tune the model", type="password")
+
+    if st.button("**Start fine-tuning**"):
+
+        if fine_tuned_secret != fine_tune_secret:
+            st.write("Finetune secret is incorrect.")
+            return
 
         file_tuning_list = glob.glob('upload_files/fine_tuning_data/in_progress/*.xlsx')
 
@@ -279,9 +291,9 @@ def ui_rendering(special_internal_function=None):
 
         if is_hyper_params is True:
             print(epochs_value, learning_rate_value, batch_size_value)
-            do_fine_tuning(epochs_value, learning_rate_value, batch_size_value)
+            do_fine_tuning(epochs_value, learning_rate_value, batch_size_value, fine_tuned_suffix)
         else:
-            do_fine_tuning()
+            do_fine_tuning(fine_tuned_suffix=fine_tuned_suffix)
 
         st.write("Fine-tuning is submitted successfully. Please check the status in your OpenAI account.")
 
