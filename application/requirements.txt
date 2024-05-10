@@ -1,5 +1,5 @@
 streamlit>=1.28
-langchain
+langchain==0.1.19
 openai>=1.2
 duckduckgo-search
 anthropic>=0.3.0
