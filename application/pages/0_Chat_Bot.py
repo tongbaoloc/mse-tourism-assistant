@@ -116,7 +116,7 @@ if prompt := st.chat_input():
         st.session_state.messages.append(
             {"role": "system", "content": openai_sql_system_prompt})
 
-        st.chat_message("user").write(prompt)
+        # st.chat_message("user").write(prompt)
 
 
 
