@@ -107,9 +107,9 @@ if prompt := st.chat_input():
     msg = response.content
 
     print("🚀 🚀 🚀 Prompt 🚀 🚀 🚀")
-    print(st.session_state.messages)
+    # print(st.session_state.messages)
 
-    if msg.find("real time") > -1 or msg.find("trực tiếp") > -1:
+    if msg.find("real time") > -1 or msg.find("real-time") > -1 or msg.find("trực tiếp") > -1:
 
         print("🚀 🚀 🚀 Real-time SQL Query 🚀 🚀 🚀")
 
