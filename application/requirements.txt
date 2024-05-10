@@ -17,3 +17,4 @@ PyPDF2
 chromadb==0.3.29 # Vector storage
 tiktoken
 wandb
+pypdf
