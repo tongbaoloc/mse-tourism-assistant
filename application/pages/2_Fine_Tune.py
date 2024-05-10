@@ -17,12 +17,19 @@ from wandb.integration.openai.fine_tuning import WandbLogger
 load_dotenv()
 
 development = os.getenv("DEVELOPMENT")
+
 openai_api_key = os.getenv("OPENAI_API_KEY")
 openai_model = os.getenv("OPENAI_API_MODEL")
 openai_temperature = os.getenv("OPENAI_TEMPERATURE")
 openai_tokens = os.getenv("OPENAI_TOKENS")
 openai_system_prompt = os.getenv("OPENAI_SYSTEM_PROMPT")
 openai_welcome_prompt = os.getenv("OPENAI_WELCOME_PROMPT")
+openai_fine_tune_model = os.getenv("OPENAI_FINE_TUNE_MODEL")
+openai_fine_tune_training_data_set_percent = os.getenv("FINE_TUNE_TRAINING_DATA_SET_PERCENT")
+# OPENAI_PROJECT = proj_XfVFbmxaGiC7DcFI1zhjPUNi
+openai_organization = os.getenv("OPENAI_ORG_ID")
+openai_project = os.getenv("OPENAI_PROJECT_ID")
+
 fine_tune_secret = os.getenv("FINE_TUNE_SECRET")
 
 st.set_page_config(
@@ -32,15 +39,17 @@ st.set_page_config(
     # layout="wide"
 )
 
-if development != "True":
-    hide_menu_style = """
-            <style>
-            #MainMenu {visibility: hidden;}
-            </style>
-            """
-    st.markdown(hide_menu_style, unsafe_allow_html=True)
+# if development != "True":
+#     hide_menu_style = """
+#             <style>
+#             #MainMenu {visibility: hidden;}
+#             </style>
+#             """
+#     st.markdown(hide_menu_style, unsafe_allow_html=True)
 
-client = openai.OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+client = openai.OpenAI(
+    api_key=openai_api_key,
+    organization=openai_organization)
 
 with open('config.yaml') as file:
     config = yaml.load(file, Loader=SafeLoader)
@@ -64,8 +73,7 @@ name, authentication_status, username = authenticator.login()
 def write_jsonl(data_list: list, filename: str) -> None:
     with open(filename, "w") as out:
         for ddict in data_list:
-            jout = json.dumps(ddict) + "\n"
-            out.write(jout)
+            out.write(json.dumps(ddict) + "\n")
 
 
 def move_files_to_completed_folder():
@@ -79,59 +87,46 @@ def move_files_to_completed_folder():
     print("All files are moved to completed folder.")
 
 
-def do_fine_tuning(epochs_value=None, learning_rate_value=None, batch_size_value=None, fine_tuned_suffix=None):
-    file_tuning_list = glob.glob('upload_files/fine_tuning_data/in_progress/*.xlsx')
-    for file_tuning in file_tuning_list:
+def move_file_to_completed_folder(file_name):
+    Path("upload_files/fine_tuning_data/completed").mkdir(exist_ok=True)
+    os.rename(file_name, f"upload_files/fine_tuning_data/completed/{os.path.split(file_name)[1]}")
 
-        training_file_name = file_tuning.replace(".xlsx", "_training.jsonl")
-        validation_file_name = file_tuning.replace(".xlsx", "_validation.jsonl")
+    print(f"{file_name} is moved to completed folder.")
 
-        with open(training_file_name, "rb") as training_fd:
-            training_response = client.files.create(
-                file=training_fd, purpose="fine-tune"
-            )
 
-        training_file_id = training_response.id
+def do_fine_tuning(epochs_value=None, learning_rate_value=None, batch_size_value=None, fine_tuned_suffix=None,
+                   sql_tunned=False):
+    if sql_tunned is True:
 
-        with open(validation_file_name, "rb") as validation_fd:
-            validation_response = client.files.create(
-                file=validation_fd, purpose="fine-tune"
-            )
+        sql_file_tuning_list = glob.glob('upload_files/fine_tuning_data/in_progress/*.jsonl')
 
-        validation_file_id = validation_response.id
+        training_file_id = None
+        validation_file_id = None
 
-        # print("Training file ID:", training_file_id)
-        # print("Validation file ID:", validation_file_id)
+        for sql_file_tuning in sql_file_tuning_list:
 
-        if epochs_value is not None and learning_rate_value is not None and batch_size_value is not None:
-            response = client.fine_tuning.jobs.create(
-                training_file=training_file_id,
-                validation_file=validation_file_id,
-                model="gpt-3.5-turbo-0125",
-                suffix=f"{fine_tuned_suffix}",
-                hyperparameters={
-                    "learning_rate": learning_rate_value,
-                    "batch_size": batch_size_value,
-                    "num_epochs": epochs_value
-                }
-            )
-        else:
-            response = client.fine_tuning.jobs.create(
-                training_file=training_file_id,
-                validation_file=validation_file_id,
-                model="gpt-3.5-turbo-0125",
-                suffix=f"tourism{datetime.now().strftime('%Y-%m-%d')}"
-                # ,
-                # integrations=[{
-                #     "type": "wandb",
-                #     "wandb": {
-                #         "project": "tourism-assistant",
-                #         "tags": ["tourism", "fine-tuning"]
-                #     }
-                # }]
-            )
+            st.write(f"SQL fine-tuning data *{sql_file_tuning}* is in progress...")
 
-        move_files_to_completed_folder()
+            with open(sql_file_tuning, "rb") as sql_fd:
+                sql_response = client.files.create(
+                    file=sql_fd,
+                    purpose="fine-tune"
+                )
+
+            if "_training.jsonl" in sql_file_tuning:
+                training_file_id = sql_response.id
+            elif "_validation.jsonl" in sql_file_tuning:
+                validation_file_id = sql_response.id
+
+            # move_files_to_completed_folder()  # TODO: move only the processed files
+            move_file_to_completed_folder(sql_file_tuning)
+
+        response = create_fine_tuning_job(batch_size_value,
+                                          epochs_value,
+                                          fine_tuned_suffix,
+                                          learning_rate_value,
+                                          training_file_id,
+                                          validation_file_id)
 
         response = client.fine_tuning.jobs.retrieve(response.id)
 
@@ -141,23 +136,100 @@ def do_fine_tuning(epochs_value=None, learning_rate_value=None, batch_size_value
 
         if development == "True":
             st.write("Weight and Biases logging is in progress...")
-            WandbLogger.sync(fine_tune_job_id=response.id, project="tourism-assistant", openai_client=client, tags=["tourism", "fine-tuning"])
+            WandbLogger.sync(fine_tune_job_id=response.id,
+                             project="tourism-assistant-sql",
+                             openai_client=client,
+                             wait_for_job_success=False,
+                             tags=["tourism", "sql-fine-tuning"])
 
-        # response = client.fine_tuning.jobs.list_events(response.id)
+    else:
+        file_tuning_list = glob.glob('upload_files/fine_tuning_data/in_progress/*.xlsx')
 
-        # events = response.data
-        # events.reverse()
-        #
-        # for event in events:
-        #     print(event.message)
+        for file_tuning in file_tuning_list:
+
+            training_file_name = file_tuning.replace(".xlsx", "_training.jsonl")
+            validation_file_name = file_tuning.replace(".xlsx", "_validation.jsonl")
+
+            with open(training_file_name, "rb") as training_fd:
+                training_response = client.files.create(
+                    file=training_fd, purpose="fine-tune"
+                )
+
+            training_file_id = training_response.id
+
+            with open(validation_file_name, "rb") as validation_fd:
+                validation_response = client.files.create(
+                    file=validation_fd, purpose="fine-tune"
+                )
+
+            validation_file_id = validation_response.id
+
+            print("Training file ID:", training_file_id)
+            print("Validation file ID:", validation_file_id)
+
+            response = create_fine_tuning_job(batch_size_value, epochs_value, fine_tuned_suffix, learning_rate_value,
+                                              training_file_id, validation_file_id)
+
+            response = client.fine_tuning.jobs.retrieve(response.id)
+
+            print("Job ID:", response.id)
+            print("Status:", response.status)
+            print("Trained Tokens:", response.trained_tokens)
+
+            if development == "True":
+                st.write("Weight and Biases logging is in progress...")
+                WandbLogger.sync(fine_tune_job_id=response.id,
+                                 project="tourism-assistant",
+                                 openai_client=client,
+                                 tags=["tourism", "fine-tuning"],
+                                 wait_for_job_success=False)
+
+            # response = client.fine_tuning.jobs.list_events(response.id)
+
+            # events = response.data
+            # events.reverse()
+            #Weight and Biases logging is in progress...
+            # for event in events:
+            #     print(event.message)
+
+            # move_files_to_completed_folder()  # TODO: move only the processed files
+            move_file_to_completed_folder(validation_file_name)
+            move_file_to_completed_folder(training_file_name)
+
+
+def create_fine_tuning_job(batch_size_value, epochs_value, fine_tuned_suffix, learning_rate_value, training_file_id,
+                           validation_file_id):
+    if epochs_value is not None and learning_rate_value is not None and batch_size_value is not None:
+
+        response = client.fine_tuning.jobs.create(
+            training_file=training_file_id,
+            validation_file=validation_file_id,
+            model=openai_fine_tune_model,
+            suffix=f"{fine_tuned_suffix}",
+            hyperparameters={
+                "learning_rate": learning_rate_value,
+                "batch_size": batch_size_value,
+                "num_epochs": epochs_value
+            }
+        )
+    else:
+        response = client.fine_tuning.jobs.create(
+            training_file=training_file_id,
+            validation_file=validation_file_id,
+            model=openai_fine_tune_model,
+            suffix=f"{fine_tuned_suffix}"
+        )
+    return response
 
 
 def convert_fine_tuning_csv_to_jsonl():
     file_tuning_csv_list = glob.glob('upload_files/fine_tuning_data/in_progress/*.csv')
+
     for file_csv_tuning in file_tuning_csv_list:
         tourism_df = pd.read_csv(file_csv_tuning)
 
-        number_of_training_row = math.floor(len(tourism_df.index) * 0.8)
+        number_of_training_row = math.floor(len(tourism_df.index) * float(openai_fine_tune_training_data_set_percent))
+
         number_of_validate_row = len(tourism_df.index) - number_of_training_row
 
         training_df = tourism_df.loc[0:number_of_training_row]
@@ -174,23 +246,17 @@ def convert_fine_tuning_csv_to_jsonl():
 
 
 def create_user_message(row):
-    return f"""Question: {row['Question']}"""
-
-
-system_message = ("You are an expert in providing travel assistance for Can Tho. Your role is to offer detailed "
-                  "information, tips, and guidance to travelers interested in exploring Can Tho, Vietnam. You provide "
-                  "insights into the best places to visit, local cuisine, cultural highlights, and practical travel "
-                  "advice to ensure visitors have a memorable and smooth experience in Can Tho.")
+    return f"""Question: {row['ask']}"""
 
 
 def prepare_example_conversation(row):
-    messages = [{"role": "system", "content": system_message}]
+    messages = [{"role": "system", "content": openai_system_prompt}]
 
     user_message = create_user_message(row)
 
     messages.append({"role": "user", "content": user_message})
 
-    messages.append({"role": "assistant", "content": row["Answer"]})
+    messages.append({"role": "assistant", "content": row["answer"]})
 
     return {"messages": messages}
 
@@ -211,44 +277,81 @@ def convert_fine_tuning_data_to_csv():
 
 
 def ui_rendering(special_internal_function=None):
-    st.markdown("<h3>Fine-tuning GPT model</h3>", unsafe_allow_html=True)
+    st.markdown("<h3>Fine-Tuning GPT on Custom Dataset</h3>", unsafe_allow_html=True)
+
+    st.info("**Fine-Tuning**")
 
     st.caption("To update latest tourism information in Can Tho City.")
 
-    with open("upload_files/fine_tuning_data/fine_tuning_data_template.xlsx", "rb") as template_file:
-        template_byte = template_file.read()
-
-    st.write("*Download the fine-tuning data template*")
+    with open("upload_files/fine_tuning_data/fine_tuning_ask_and_answer_template.xlsx", "rb") as aa_template_file:
+        aa_template_byte = aa_template_file.read()
 
     st.download_button(
-        label="Download",
-        data=template_byte,
-        file_name="fine_tuning_data_template.xlsx"
+        label="Download the Q&A template",
+        data=aa_template_byte,
+        file_name="fine_tuning_ask_and_answer_template.xlsx"
     )
+
+    st.write("Q&A example example:")
+
+    aa_template_file = pd.read_excel("upload_files/fine_tuning_data/fine_tuning_ask_and_answer_template.xlsx")
+    st.write(aa_template_file)
+
+    with open("upload_files/fine_tuning_data/fine_tuning_sql_tune_template.xlsx", "rb") as sql_fine_tune_template_file:
+        sql_fine_tune_template_byte = sql_fine_tune_template_file.read()
+
+    st.download_button(
+        label="Download the SQL fine tune template",
+        data=sql_fine_tune_template_byte,
+        file_name="fine_tuning_sql_tune_template.xlsx"
+    )
+
+    st.write("SQL fine tune example:")
+
+    sql_fine_tune_template_file = pd.read_excel("upload_files/fine_tuning_data/fine_tuning_sql_tune_template.xlsx")
+    st.write(sql_fine_tune_template_file)
 
     st.divider()
 
-    st.write("*Upload the fine-tuning data*")
+    st.info("**Upload the Fine-Tuning data**")
 
-    training_data = st.file_uploader("Choose file", type=("xlsx", "xls"))
+    training_data = st.file_uploader("Choose file", type=("xlsx", "xls"), key="training_data")
+    # TODO: support multiple files
 
     if training_data:
+
         df = pd.read_excel(training_data)
         st.write(df)
 
-    if st.button("Upload file"):
-        st.write("Uploading training data...")
-        if training_data:
-            df = pd.read_excel(training_data)
-            Path("upload_files/fine_tuning_data/in_progress").mkdir(exist_ok=True)
-            df.to_excel(
-                f"upload_files/fine_tuning_data/in_progress/{datetime.now().strftime('%Y-%m-%d-%H-%M-%S')}_{training_data.name}",
-                index=False)
-            st.write("Training data uploaded successfully.")
+        if st.button("Upload file"):
+            st.write("Uploading training data...")
+            if training_data:
+                df = pd.read_excel(training_data)
+                Path("upload_files/fine_tuning_data/in_progress").mkdir(exist_ok=True)
+                df.to_excel(
+                    f"upload_files/fine_tuning_data/in_progress/{datetime.now().strftime('%Y-%m-%d-%H-%M-%S')}_{training_data.name}",
+                    index=False)
+                st.write("Training data uploaded successfully.")
+
+    sql_training_files = st.file_uploader("Choose files (training, validation))", type="jsonl", key="sql_training_data",
+                                          accept_multiple_files=True)
+    st.warning("Please make sure to upload sql based training and validation data in jsonl format.")
+
+    if sql_training_files:
+
+        if st.button("Upload training/validation files"):
+            st.write("Uploading sql training/validation data in jsonl format...")
+
+            for sql_training_file in sql_training_files:
+                Path("upload_files/fine_tuning_data/in_progress").mkdir(exist_ok=True)
+                with open(f"upload_files/fine_tuning_data/in_progress/{sql_training_file.name}", "wb") as sql_fd:
+                    sql_fd.write(sql_training_file.read())
+
+            st.write("SQL training/validation data uploaded successfully.")
 
     st.divider()
 
-    st.write("*Create a fine-tuned model*")
+    st.info("**Create a Fine tuned model**")
 
     is_hyper_params = st.checkbox(" Do you want to adjust hyperparameters?")
 
@@ -264,36 +367,40 @@ def ui_rendering(special_internal_function=None):
 
     st.write(f"Batch size: {batch_size_value}")
 
-    st.warning("Please make sure to adjust the hyperparameters properly to avoid overwriting or underwriting the model.")
+    st.warning("Make sure to adjust the hyperparameters/data set properly to avoid overwriting or underwriting the "
+               "model.")
 
     fine_tuned_suffix = st.text_input("Enter the suffix for the fine-tuned model",
                                       value=f"tourism{datetime.now().strftime('%Y-%m-%d')}")
 
     fine_tuned_secret = st.text_input("Enter the secret to fine-tune the model", type="password")
 
+    sql_tunned = st.checkbox("Do you want to fine-tune the model with SQL based tune?")
+
     if st.button("**Start fine-tuning**"):
 
         if fine_tuned_secret != fine_tune_secret:
-            st.write("Finetune secret is incorrect.")
+            st.error("Finetune secret is incorrect.")
             return
 
-        file_tuning_list = glob.glob('upload_files/fine_tuning_data/in_progress/*.xlsx')
+        file_tuning_list = glob.glob('upload_files/fine_tuning_data/in_progress/*')
 
         if not file_tuning_list:
             st.write("No file to fine-tune.")
             return
 
-        st.write("Fine-tuning is in progress...")
+        if sql_tunned is True:
+            st.write("SQL fine-tuning is in progress...")
+        else:
+            st.write("Fine-tuning is in progress...")
 
-        convert_fine_tuning_data_to_csv()
-
-        convert_fine_tuning_csv_to_jsonl()
+            convert_fine_tuning_data_to_csv()
+            convert_fine_tuning_csv_to_jsonl()
 
         if is_hyper_params is True:
-            print(epochs_value, learning_rate_value, batch_size_value)
-            do_fine_tuning(epochs_value, learning_rate_value, batch_size_value, fine_tuned_suffix)
+            do_fine_tuning(epochs_value, learning_rate_value, batch_size_value, fine_tuned_suffix, sql_tunned)
         else:
-            do_fine_tuning(fine_tuned_suffix=fine_tuned_suffix)
+            do_fine_tuning(fine_tuned_suffix=fine_tuned_suffix, sql_tunned=sql_tunned)
 
         st.write("Fine-tuning is submitted successfully. Please check the status in your OpenAI account.")
 

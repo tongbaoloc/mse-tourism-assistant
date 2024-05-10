@@ -1,0 +1,5 @@
+
+[34m[1mwandb[39m[22m: [33mWARNING[39m Fine-tune ftjob-DScuoKuJJ2i8WEAPgIMjMfWI has the status "validating_files" and will not be logged
+upload_files/fine_tuning_data/in_progress/2024-05-09-23-19-22_fine_tuning_ask_and_answer_tourism_assistant_validation.jsonl is moved to completed folder.
+upload_files/fine_tuning_data/in_progress/2024-05-09-23-19-22_fine_tuning_ask_and_answer_tourism_assistant_training.jsonl is moved to completed folder.
+[34m  Stopping...

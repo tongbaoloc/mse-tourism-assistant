@@ -1,0 +1,37 @@
+{
+    "os": "macOS-14.4.1-arm64-arm-64bit",
+    "python": "3.11.5",
+    "heartbeatAt": "2024-05-09T16:19:51.946724",
+    "startedAt": "2024-05-09T16:19:46.487970",
+    "docker": null,
+    "cuda": null,
+    "args": [],
+    "state": "running",
+    "program": "/Users/loc/Desktop/2024/Git/mse/researching_llm/tourism-assistant/application/pages/2_Fine_Tune.py",
+    "codePathLocal": "pages/2_Fine_Tune.py",
+    "codePath": "application/pages/2_Fine_Tune.py",
+    "git": {
+        "remote": "git@github.com:tongbaoloc/mse-tourism-assistant.git",
+        "commit": "a7822fe0edf5f8f7f74edcb21270ac9e48fdda98"
+    },
+    "email": "loc.tong@ptngloabalcorp.com",
+    "root": "/Users/loc/Desktop/2024/Git/mse/researching_llm/tourism-assistant",
+    "host": "192.168.2.9",
+    "username": "loc",
+    "executable": "/Users/loc/anaconda3/bin/python",
+    "cpu_count": 10,
+    "cpu_count_logical": 10,
+    "disk": {
+        "/": {
+            "total": 926.3517189025879,
+            "used": 216.3668441772461
+        }
+    },
+    "gpuapple": {
+        "type": "Apple M1 Pro",
+        "vendor": "sppci_vendor_Apple"
+    },
+    "memory": {
+        "total": 16.0
+    }
+}
