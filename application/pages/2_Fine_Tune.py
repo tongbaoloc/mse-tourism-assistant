@@ -91,8 +91,6 @@ def move_file_to_completed_folder(file_name):
     Path("upload_files/fine_tuning_data/completed").mkdir(exist_ok=True)
     os.rename(file_name, f"upload_files/fine_tuning_data/completed/{os.path.split(file_name)[1]}")
 
-    print(f"{file_name} is moved to completed folder.")
-
 
 def do_fine_tuning(epochs_value=None, learning_rate_value=None, batch_size_value=None, fine_tuned_suffix=None,
                    sql_tunned=False):
@@ -188,7 +186,7 @@ def do_fine_tuning(epochs_value=None, learning_rate_value=None, batch_size_value
 
             # events = response.data
             # events.reverse()
-            #Weight and Biases logging is in progress...
+            # Weight and Biases logging is in progress...
             # for event in events:
             #     print(event.message)
 
@@ -279,7 +277,7 @@ def convert_fine_tuning_data_to_csv():
 def ui_rendering(special_internal_function=None):
     st.markdown("<h3>Fine-Tuning GPT on Custom Dataset</h3>", unsafe_allow_html=True)
 
-    st.info("**Fine-Tuning**")
+    st.info("Fine-Tuning template files")
 
     st.caption("To update latest tourism information in Can Tho City.")
 
@@ -310,8 +308,6 @@ def ui_rendering(special_internal_function=None):
 
     sql_fine_tune_template_file = pd.read_excel("upload_files/fine_tuning_data/fine_tuning_sql_tune_template.xlsx")
     st.write(sql_fine_tune_template_file)
-
-    st.divider()
 
     st.info("**Upload the Fine-Tuning data**")
 
@@ -348,8 +344,6 @@ def ui_rendering(special_internal_function=None):
                     sql_fd.write(sql_training_file.read())
 
             st.write("SQL training/validation data uploaded successfully.")
-
-    st.divider()
 
     st.info("**Create a Fine tuned model**")
 

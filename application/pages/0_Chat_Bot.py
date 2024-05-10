@@ -3,13 +3,14 @@ from dotenv import load_dotenv
 import os
 
 from langchain_community.chat_models import ChatOpenAI
+from langchain_community.embeddings import OpenAIEmbeddings
+from langchain_community.vectorstores import Chroma
 
 st.set_page_config(
     initial_sidebar_state="collapsed",
     page_title="Tourists Assistant Chatbot",
     page_icon=":earth_asia:",
 )
-
 
 load_dotenv()
 
@@ -22,6 +23,7 @@ openai_model = os.getenv("OPENAI_MODEL")
 openai_temperature = os.getenv("OPENAI_TEMPERATURE")
 openai_tokens = os.getenv("OPENAI_TOKENS")
 openai_system_prompt = os.getenv("OPENAI_SYSTEM_PROMPT")
+openai_sql_system_prompt = os.getenv("OPENAI_SQL_SYSTEM_PROMPT")
 openai_welcome_prompt = os.getenv("OPENAI_WELCOME_PROMPT")
 openai_fine_tune_model = os.getenv("OPENAI_FINE_TUNE_MODEL")
 openai_fine_tune_training_data_set_percent = os.getenv("FINE_TUNE_TRAINING_DATA_SET_PERCENT")
@@ -30,6 +32,7 @@ openai_organization = os.getenv("OPENAI_ORG_ID")
 openai_project = os.getenv("OPENAI_PROJECT_ID")
 
 fine_tune_secret = os.getenv("FINE_TUNE_SECRET")
+chroma_path = os.getenv("CHROMA_PATH")
 
 if development != "True":
     hide_menu_style = """
@@ -53,8 +56,12 @@ print("⭐ OpenAI Tokens:", openai_tokens)
 print("⭐ OpenAI System Prompt:", openai_system_prompt)
 print("⭐ OpenAI Welcome Prompt:", openai_welcome_prompt)
 
-if "messages" not in st.session_state:
+db = Chroma(
+    persist_directory=chroma_path,
+    embedding_function=OpenAIEmbeddings()
+)
 
+if "messages" not in st.session_state:
     st.session_state["messages"] = [{"role": "system", "content": openai_system_prompt},
                                     {"role": "assistant", "content": openai_welcome_prompt}]
 
@@ -65,10 +72,17 @@ if "messages" not in st.session_state:
 for msg in st.session_state.messages:
 
     if msg["role"] != "system":
-
         st.chat_message(msg["role"]).write(msg["content"])
 
 if prompt := st.chat_input():
+
+    results_in_vector_db = db.similarity_search_with_score(prompt, k=5)
+    context_text_vector_db = "\n\n---\n\n".join([doc.page_content for doc, _score in results_in_vector_db])
+
+    print(f"🚀 Context from Vector DB: {context_text_vector_db}")
+
+    st.session_state.messages.append(
+        {"role": "system", "content": openai_system_prompt.replace("<<context>>", "#Context: " + context_text_vector_db)})
 
     llm = ChatOpenAI(
         api_key=openai_api_key,
@@ -92,7 +106,24 @@ if prompt := st.chat_input():
 
     msg = response.content
 
-    print(f"🚀 Response {response}")
+    print("🚀 🚀 🚀 Prompt 🚀 🚀 🚀")
+    print(st.session_state.messages)
+
+    if msg.find("real time") > -1 or msg.find("trực tiếp") > -1:
+
+        print("🚀 🚀 🚀 Real-time SQL Query 🚀 🚀 🚀")
+
+        st.session_state.messages.append(
+            {"role": "system", "content": openai_sql_system_prompt})
+
+        st.chat_message("user").write(prompt)
+
+
+
+        response = llm.invoke(st.session_state.messages)
+
+        msg = response.content
 
     st.session_state.messages.append({"role": "assistant", "content": msg})
+
     st.chat_message("assistant").write(msg)
