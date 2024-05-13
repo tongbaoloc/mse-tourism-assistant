@@ -15,7 +15,8 @@ load_dotenv()
 # openai_api_key = st.secrets["OPENAI_API_KEY"]
 # openai_model = st.secrets["OPENAI_API_MODEL"]
 development = os.getenv("DEVELOPMENT")
-openai_api_key = os.getenv("OPENAI_API_KEY")
+# openai_api_key = os.getenv("OPENAI_API_KEY")
+openai_api_key = 'sk-proj-Woh8SFgZ0Z2kVew3diIYT3BlbkFJSpojO8dFcZCX1Lu24XdP'
 openai_model = os.getenv("OPENAI_API_MODEL")
 openai_temperature = os.getenv("OPENAI_TEMPERATURE")
 openai_tokens = os.getenv("OPENAI_TOKENS")

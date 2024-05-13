@@ -6,7 +6,7 @@ st.set_page_config(page_title="Tourists Assistant Chatbot", page_icon=":earth_as
 show_pages(
     [
         Page("pages/0_Chat_Bot.py", "Tourists Assistant Chatbot.", ":robot_face:"),
-
+        Page("pages/0_Chat_Bot_Text2SQL.py", "Tourists Assistant Chatbot NlP2SQL.", ":robot_face:"),
         # Section("Build Knowledge", ":brain:"),
 
         Page("pages/2_Fine_Tune.py", "Fine Tune GPT.", "🧠"),

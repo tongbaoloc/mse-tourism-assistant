@@ -57,14 +57,8 @@ print("⭐ OpenAI Tokens:", openai_tokens)
 print("⭐ OpenAI System Prompt:", openai_system_prompt)
 print("⭐ OpenAI Welcome Prompt:", openai_welcome_prompt)
 
-db = Chroma(
-    persist_directory=chroma_path,
-    embedding_function=OpenAIEmbeddings(
-        api_key=openai_api_key)
-)
-
 if "messages" not in st.session_state:
-    st.session_state["messages"] = [{"role": "system", "content": openai_system_prompt},
+    st.session_state["messages"] = [{"role": "system", "content": openai_sql_system_prompt},
                                     {"role": "assistant", "content": openai_welcome_prompt}]
 
     print("🚀 🚀 🚀 Initial Session State 🚀 🚀 🚀")
@@ -77,14 +71,6 @@ for msg in st.session_state.messages:
         st.chat_message(msg["role"]).write(msg["content"])
 
 if prompt := st.chat_input():
-
-    results_in_vector_db = db.similarity_search_with_score(prompt, k=5)
-    context_text_vector_db = "\n\n---\n\n".join([doc.page_content for doc, _score in results_in_vector_db])
-
-    print(f"🚀 Context from Vector DB: {context_text_vector_db}")
-
-    st.session_state.messages.append(
-        {"role": "system", "content": openai_system_prompt.replace("<<context>>", "#Context: " + context_text_vector_db)})
 
     llm = ChatOpenAI(
         api_key=openai_api_key,
@@ -109,24 +95,14 @@ if prompt := st.chat_input():
     msg = response.content
 
     print("🚀 🚀 🚀 Prompt 🚀 🚀 🚀")
+
     print(st.session_state.messages)
 
-    if msg.find("real time") > -1 or msg.find("real-time") > -1 or msg.find("trực tiếp") > -1:
+    print("🚀 🚀 🚀 Real-time SQL Query 🚀 🚀 🚀")
 
-        print("🚀 🚀 🚀 Real-time SQL Query 🚀 🚀 🚀")
+    response = llm.invoke(st.session_state.messages)
 
-        print(openai_sql_system_prompt)
-
-        st.session_state.messages.append(
-            {"role": "system", "content": openai_sql_system_prompt})
-
-        # st.chat_message("user").write(prompt)
-
-
-
-        response = llm.invoke(st.session_state.messages)
-
-        msg = response.content
+    msg = response.content
 
     st.session_state.messages.append({"role": "assistant", "content": msg})
 

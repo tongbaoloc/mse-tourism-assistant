@@ -4,3 +4,4 @@ Find flights from Can Tho to Hanoi.
 
 How much total money does a player start with in Monopoly?
 How many points does the longest continuous train get in Ticket to Ride?
+Display flights leaving Can Tho after 6 PM today.
